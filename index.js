@@ -1,9 +1,6 @@
-// backend/index.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import emailRouter from "./routes/email.js";
 
@@ -11,10 +8,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// Needed for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // ---------- MIDDLEWARE ----------
 app.use(cors());
@@ -33,15 +26,6 @@ app.use("/api/email", emailRouter);
 app.use("/api/*", (req, res) => {
   console.warn(`⚠️  API route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ success: false, message: "API route not found" });
-});
-
-// ---------- SERVE REACT FRONTEND ----------
-const frontendBuildPath = path.join(__dirname, "../frontend/build");
-app.use(express.static(frontendBuildPath));
-
-// Catch-all: serve React's index.html for non-API routes
-app.get(/^(?!\/api).*/, (req, res) => {
-  res.sendFile(path.join(frontendBuildPath, "index.html"));
 });
 
 // ---------- ERROR HANDLER ----------
