@@ -1,7 +1,7 @@
 // routes/auth.js
 import { Router } from "express";
 import { hash, compare } from "bcryptjs";
-import { sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import User from "../models/User.js"; // adjust path as needed
 
 const router = Router();
@@ -44,7 +44,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
 
     // Create JWT
-    const token = sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
