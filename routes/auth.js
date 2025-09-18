@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { hash, compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
-import User, { findOne } from "../models/User.js"; // adjust path as needed
+import User from "../models/User.js"; // adjust path as needed
 
 const router = Router();
 
@@ -35,7 +35,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     // Find user
-    const user = await findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     // Compare password
