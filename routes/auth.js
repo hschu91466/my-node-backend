@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { hash, compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
-import User, { findOne } from "../models/User"; // adjust path as needed
+import User, { findOne } from "../models/User.js"; // adjust path as needed
 
 const router = Router();
 
