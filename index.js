@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
+import cookieParser from "cookie-parser";
 import emailRouter from "./routes/email.js";
 
 dotenv.config();
@@ -10,7 +10,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ---------- MIDDLEWARE ----------
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://grammahurry.fun", // replace with your frontend URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Log every API request
@@ -18,6 +23,9 @@ app.use("/api", (req, res, next) => {
   console.log(`➡️  ${req.method} ${req.originalUrl}`);
   next();
 });
+
+// ---------- COOKIES ----------
+app.use(cookieParser());
 
 // ---------- API ROUTES ----------
 app.use("/api/email", emailRouter);
