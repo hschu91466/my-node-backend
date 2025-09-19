@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -17,18 +18,30 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = ["http://localhost:3000", "https://grammahurry.fun"];
 
 // ---------- MIDDLEWARE ----------
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  next();
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.warn("❌ Blocked by CORS:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 

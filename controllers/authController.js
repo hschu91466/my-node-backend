@@ -27,10 +27,6 @@ export const login = async (req, res) => {
     expiresIn: "1h",
   });
 
-  // Option 1: Send token in response body
-  // res.json({ token });
-
-  // ✅ Option 2: Send token in httpOnly cookie
   res
     .cookie("token", token, {
       httpOnly: true,

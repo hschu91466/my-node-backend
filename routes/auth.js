@@ -1,25 +1,23 @@
-// routes/auth.js
 import { Router } from "express";
 import { hash, compare } from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js"; // adjust path as needed
+import User from "../models/User.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = Router();
+
+const isProduction = process.env.NODE_ENV === "production";
 
 // Register route
 router.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user already exists
-    const existingUser = await findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
-    // Hash password
     const hashedPassword = await hash(password, 10);
-
-    // Create user
     const user = new User({ email, password: hashedPassword });
     await user.save();
 
@@ -34,24 +32,55 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Compare password
     const isMatch = await compare(password, user.password);
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // Create JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    res.json({ token });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 3600000,
+    });
+
+    res.json({ message: "Login successful" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
+});
+
+// Protected route
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch user", error: error.message });
+  }
+});
+
+// Logout route
+router.post("/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  res.json({ message: "Logout successful" });
+});
+
+// Check authentication status route
+router.get("/check-auth", verifyToken, (req, res) => {
+  res.json({ authenticated: true });
 });
 
 export default router;
