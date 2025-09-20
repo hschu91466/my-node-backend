@@ -9,7 +9,10 @@ import { Server } from "socket.io";
 import emailRouter from "./routes/email.js";
 import authRouter from "./routes/auth.js";
 
+console.log("🚀 Starting backend...");
+
 dotenv.config();
+console.log("MONGO_URI:", process.env.MONGO_URI);
 
 const app = express();
 const server = http.createServer(app);
@@ -45,6 +48,16 @@ app.use("/api", (req, res, next) => {
 // ---------- ROUTES ----------
 app.use("/api/email", emailRouter);
 app.use("/api/auth", authRouter);
+
+// ---------- MONGOOSE ----------
+console.log("Connecting to MONGO_URI:", process.env.MONGO_URI);
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MONGO_URI connected"))
+  .catch((err) => console.error("❌ MONGO_URI connection error:", err));
 
 // ---------- SOCKET.IO ----------
 const io = new Server(server, {
