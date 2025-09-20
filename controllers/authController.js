@@ -16,22 +16,22 @@ const setTokenCookie = (res, userId) => {
   });
   return token;
 };
-export const register = async (req, res) => {
-  const { username, email, password } = req.body;
+export const signup = async (req, res) => {
+  const { fullName, email, password } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser)
     return res.status(400).json({ message: "User already exists" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ username, email, password: hashedPassword });
+  const user = new User({ fullName, email, password: hashedPassword });
   await user.save();
 
   const token = setTokenCookie(res, user._id);
 
   res.status(201).json({
     message: "User registered",
-    user: { id: user._id, username: user.username, email: user.email },
+    user: { id: user._id, fullName: user.fullName, email: user.email },
     token,
   });
 };
@@ -47,7 +47,7 @@ export const login = async (req, res) => {
 
   res.json({
     message: "Login successful",
-    user: { id: user._id, username: user.username, email: user.email },
+    user: { id: user._id, fullName: user.fullName, email: user.email },
     token,
   });
 };
@@ -56,7 +56,7 @@ export const profile = async (req, res) => {
   try {
     console.log("Cookies received:", req.cookies);
     const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
+    res.json({ user });
   } catch (error) {
     res
       .status(500)

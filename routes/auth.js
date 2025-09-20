@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  register,
+  signup,
   login,
   profile,
   logout,
@@ -15,8 +15,8 @@ router.get("/check-cookie", (req, res) => {
   res.json({ cookies: req.cookies });
 });
 
-// Register route
-router.post("/register", register);
+// Signup route
+router.post("/signup", signup);
 
 // Login route
 router.post("/login", login);
@@ -33,13 +33,11 @@ router.get("/check-auth", verifyToken, async (req, res) => {
     const user = await User.findById(req.user.id).select("-password");
     res.json({ authenticated: true, user });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        authenticated: false,
-        message: "Failed to verify authentication",
-        error: error.message,
-      });
+    res.status(500).json({
+      authenticated: false,
+      message: "Failed to verify authentication",
+      error: error.message,
+    });
   }
 });
 
