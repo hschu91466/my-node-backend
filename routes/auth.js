@@ -10,6 +10,11 @@ import User from "../models/User.js";
 
 const router = Router();
 
+router.get("/check-cookie", (req, res) => {
+  console.log("Cookies:", req.cookies);
+  res.json({ cookies: req.cookies });
+});
+
 // Register route
 router.post("/register", register);
 
@@ -24,13 +29,18 @@ router.post("/logout", logout);
 
 // Check authentication status route
 router.get("/check-auth", verifyToken, async (req, res) => {
-  try{
+  try {
     const user = await User.findById(req.user.id).select("-password");
     res.json({ authenticated: true, user });
   } catch (error) {
-    res.status(500).json({ authenticated: false, message: "Failed to verify authentication", error: error.message });
+    res
+      .status(500)
+      .json({
+        authenticated: false,
+        message: "Failed to verify authentication",
+        error: error.message,
+      });
   }
-  
 });
 
 export default router;

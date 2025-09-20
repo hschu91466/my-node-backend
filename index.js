@@ -86,11 +86,6 @@ app.get("/test-cookie", (req, res) => {
   res.send("Cookie test");
 });
 
-router.get("/check-cookie", (req, res) => {
-  console.log("Cookies:", req.cookies);
-  res.json({ cookies: req.cookies });
-});
-
 // ---------- 404 HANDLER ----------
 app.use("/api/*", (req, res) => {
   console.warn(`⚠️  API route not found: ${req.method} ${req.originalUrl}`);
