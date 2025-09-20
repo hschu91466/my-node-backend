@@ -10,12 +10,12 @@ const setTokenCookie = (res, userId) => {
   });
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",  
-    sameSite: "Lax",
+    secure: true,
+    sameSite: "None",
     maxAge: 3600000, // 1 hour
   });
   return token;
-}
+};
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -45,10 +45,10 @@ export const login = async (req, res) => {
 
   const token = setTokenCookie(res, user._id);
 
-  res.json({ 
+  res.json({
     message: "Login successful",
     user: { id: user._id, username: user.username, email: user.email },
-    token, 
+    token,
   });
 };
 
