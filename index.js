@@ -76,6 +76,16 @@ io.on("connection", (socket) => {
   });
 });
 
+// ---------- TEST ROUTE ----------
+app.get("/test-cookie", (req, res) => {
+  res.cookie("test", "value", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+  res.send("Cookie test");
+});
+
 // ---------- 404 HANDLER ----------
 app.use("/api/*", (req, res) => {
   console.warn(`⚠️  API route not found: ${req.method} ${req.originalUrl}`);
