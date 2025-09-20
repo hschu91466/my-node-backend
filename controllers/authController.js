@@ -3,6 +3,19 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const { sign } = jwt;
+
+const setTokenCookie = (res, userId) => {
+  const token = sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",  
+    sameSite: "Lax",
+    maxAge: 3600000, // 1 hour
+  });
+  return token;
+}
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -13,7 +26,14 @@ export const register = async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({ username, email, password: hashedPassword });
   await user.save();
-  res.status(201).json({ message: "User registered" });
+
+  const token = setTokenCookie(res, user._id);
+
+  res.status(201).json({
+    message: "User registered",
+    user: { id: user._id, username: user.username, email: user.email },
+    token,
+  });
 };
 
 export const login = async (req, res) => {
@@ -23,16 +43,31 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const token = sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
+  const token = setTokenCookie(res, user._id);
 
-  res
-    .cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-      maxAge: 3600000, // 1 hour
-    })
-    .json({ message: "Login successful" });
+  res.json({ 
+    message: "Login successful",
+    user: { id: user._id, username: user.username, email: user.email },
+    token, 
+  });
+};
+
+export const profile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch user", error: error.message });
+  }
+};
+
+export const logout = async (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  res.json({ message: "Logout successful" });
 };

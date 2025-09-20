@@ -1,101 +1,36 @@
 import { Router } from "express";
-import { hash, compare } from "bcryptjs";
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import {
+  register,
+  login,
+  profile,
+  logout,
+} from "../controllers/authController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import User from "../models/User.js";
 
 const router = Router();
 
-const isProduction = process.env.NODE_ENV === "production";
-
 // Register route
-router.post("/register", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "User already exists" });
-
-    const hashedPassword = await hash(password, 10);
-    const user = new User({ email, password: hashedPassword });
-    await user.save();
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 3600000,
-    });
-
-    res.status(201).json({
-      message: "User registered successfully",
-      user: { id: user._id, email: user.email },
-      token,
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
+router.post("/register", register);
 
 // Login route
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
-
-    const isMatch = await compare(password, user.password);
-    if (!isMatch)
-      return res.status(401).json({ message: "Invalid credentials" });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 3600000,
-    });
-
-    res.json({ message: "Login successful" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
+router.post("/login", login);
 
 // Protected route
-router.get("/me", verifyToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch user", error: error.message });
-  }
-});
+router.get("/profile", verifyToken, profile);
 
 // Logout route
-router.post("/logout", (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
-  });
-  res.json({ message: "Logout successful" });
-});
+router.post("/logout", logout);
 
 // Check authentication status route
-router.get("/check-auth", verifyToken, (req, res) => {
-  res.json({ authenticated: true });
+router.get("/check-auth", verifyToken, async (req, res) => {
+  try{
+    const user = await User.findById(req.user.id).select("-password");
+    res.json({ authenticated: true, user });
+  } catch (error) {
+    res.status(500).json({ authenticated: false, message: "Failed to verify authentication", error: error.message });
+  }
+  
 });
 
 export default router;
