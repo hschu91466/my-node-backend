@@ -54,6 +54,7 @@ export const login = async (req, res) => {
 
 export const profile = async (req, res) => {
   try {
+    console.log("Cookies received:", req.cookies);
     const user = await User.findById(req.user.id).select("-password");
     res.json(user);
   } catch (error) {
@@ -66,8 +67,8 @@ export const profile = async (req, res) => {
 export const logout = async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
+    secure: true,
+    sameSite: "None",
   });
   res.json({ message: "Logout successful" });
 };
