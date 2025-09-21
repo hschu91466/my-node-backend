@@ -52,7 +52,7 @@ export const login = async (req, res) => {
   });
 };
 
-export const profile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     console.log("Cookies received:", req.cookies);
     const user = await User.findById(req.user.id).select("-password");
@@ -61,6 +61,25 @@ export const profile = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to fetch user", error: error.message });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+    const updateData = { fullName, email };
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, updateData, {
+      new: true,
+    }).select("-password");
+    res.json({ user: updatedUser });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to update user", error: error.message });
   }
 };
 

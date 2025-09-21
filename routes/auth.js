@@ -2,7 +2,8 @@ import { Router } from "express";
 import {
   signup,
   login,
-  profile,
+  getProfile,
+  updateProfile,
   logout,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
@@ -22,7 +23,10 @@ router.post("/signup", signup);
 router.post("/login", login);
 
 // Protected route
-router.get("/profile", verifyToken, profile);
+router.get("/profile", verifyToken, getProfile);
+
+// Profile update route
+router.put("/profile", verifyToken, updateProfile);
 
 // Logout route
 router.post("/logout", logout);
