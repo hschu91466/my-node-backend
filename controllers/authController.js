@@ -66,20 +66,31 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
-    const updateData = { fullName, email };
+    const { fullName, email, password, profilePic, imagePosition } = req.body;
+
+    const updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (email) updateData.email = email;
+    if (profilePic) updateData.profilePic = profilePic;
+    if (imagePosition) updateData.imagePosition = imagePosition;
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
     }
+
     const updatedUser = await User.findByIdAndUpdate(req.user.id, updateData, {
       new: true,
     }).select("-password");
-    res.json({ user: updatedUser });
+
+    res.status(200).json({ message: "Profile updated", user: updatedUser });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to update user", error: error.message });
+    if (!res.headersSent) {
+      res
+        .status(500)
+        .json({ message: "Failed to update user", error: error.message });
+    } else {
+      console.error("Error after headers sent:", error);
+    }
   }
 };
 
