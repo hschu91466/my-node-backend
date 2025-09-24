@@ -22,7 +22,19 @@ const userSchema = new mongoose.Schema(
     },
     imagePosition: {
       type: String,
-      default: "50%",
+      default: "center",
+    },
+    imageSize: {
+      type: String,
+      default: "medium",
+    },
+    imageVerticalOffset: {
+      type: Number,
+      default: 0,
+    },
+    imageHorizontalOffset: {
+      type: Number,
+      default: 0,
     },
   },
   {

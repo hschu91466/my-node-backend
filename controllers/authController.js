@@ -66,13 +66,28 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { fullName, email, password, profilePic, imagePosition } = req.body;
+    const {
+      fullName,
+      email,
+      password,
+      profilePic,
+      imagePosition,
+      imageSize,
+      imageVerticalOffset,
+      imageHorizontalOffset,
+    } = req.body;
 
     const updateData = {};
     if (fullName) updateData.fullName = fullName;
     if (email) updateData.email = email;
     if (profilePic) updateData.profilePic = profilePic;
     if (imagePosition) updateData.imagePosition = imagePosition;
+    if (imageSize) updateData.imageSize = imageSize;
+    if (imageVerticalOffset !== undefined)
+      updateData.imageVerticalOffset = imageVerticalOffset;
+    if (imageHorizontalOffset !== undefined)
+      updateData.imageHorizontalOffset = imageHorizontalOffset;
+
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
