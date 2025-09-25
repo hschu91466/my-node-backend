@@ -8,6 +8,10 @@ import { Server } from "socket.io";
 
 import emailRouter from "./routes/email.js";
 import authRouter from "./routes/auth.js";
+import chatRouter from "./routes/chat.js";
+
+import Message from "./models/Message.js";
+import User from "./models/User.js";
 
 console.log("🚀 Starting backend...");
 
@@ -48,6 +52,7 @@ app.use("/api", (req, res, next) => {
 // ---------- ROUTES ----------
 app.use("/api/email", emailRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/chat", chatRouter);
 
 // ---------- MONGOOSE ----------
 console.log("Connecting to MONGO_URI:", process.env.MONGO_URI);
@@ -70,6 +75,24 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
+
+  //listen for chat message
+  socket.on("send_message", async (data) => {
+    console.log("🟢 Message received:", data);
+
+    try {
+      const user = await User.findById(data.user);
+      const newMessage = new Message({
+        text: data.text,
+        user: user.fullName,
+        imageUrl: user.profilePic,
+      });
+      await newMessage.save();
+      io.emit("receive_message", newMessage);
+    } catch (error) {
+      console.error("❌ Error saving message:", error);
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("🔴 Socket disconnected:", socket.id);
